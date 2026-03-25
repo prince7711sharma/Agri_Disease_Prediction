@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+uploads/
+model/*.keras
+model/*.tflite
+*.egg-info/
+.venv/
