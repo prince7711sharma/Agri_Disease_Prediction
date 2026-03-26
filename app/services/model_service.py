@@ -12,28 +12,52 @@ class ModelService:
         self.class_names = []
         self.disease_info = {}
         self._load()
-
     def _load(self):
-        """Load model, class names and disease info on startup."""
         print("⏳ Loading AgritechAI model...")
-
-        # Load Keras model
+        import keras  # important
         model_path = os.getenv("MODEL_PATH", "model/plant_disease_model.keras")
-        self.model = tf.keras.models.load_model(model_path)
+        self.model = keras.models.load_model(
+            model_path,
+            compile=False
+        )
         print(f"✅ Model loaded from: {model_path}")
-
-        # Load class names
         class_path = os.getenv("CLASS_NAMES_PATH", "model/class_names.json")
         with open(class_path, 'r') as f:
             self.class_names = json.load(f)
-        print(f"✅ Classes loaded: {len(self.class_names)}")
 
-        # Load disease info
+        print(f"✅ Classes loaded: {len(self.class_names)}")
         info_path = os.getenv("DISEASE_INFO_PATH", "app/data/disease_info.json")
         with open(info_path, 'r') as f:
             self.disease_info = json.load(f)
-        print(f"✅ Disease info loaded!")
 
+        print(f"✅ Disease info loaded!")
+        
+
+        
+
+    
+        
+    
+    #     """Load model, class names and disease info on startup."""
+    #     print("⏳ Loading AgritechAI model...")
+
+    #     # Load Keras model
+    #     model_path = os.getenv("MODEL_PATH", "model/plant_disease_model.keras")
+    #     self.model = tf.keras.models.load_model(model_path)
+    #     print(f"✅ Model loaded from: {model_path}")
+
+    #     # Load class names
+    #     class_path = os.getenv("CLASS_NAMES_PATH", "model/class_names.json")
+    #     with open(class_path, 'r') as f:
+    #         self.class_names = json.load(f)
+    #     print(f"✅ Classes loaded: {len(self.class_names)}")
+
+    #     # Load disease info
+    #     info_path = os.getenv("DISEASE_INFO_PATH", "app/data/disease_info.json")
+    #     with open(info_path, 'r') as f:
+    #         self.disease_info = json.load(f)
+    #     print(f"✅ Disease info loaded!")
+     
     def get_disease_info(self, class_name: str) -> dict:
         """Get disease info — exact match, healthy fallback, or generic."""
         if class_name in self.disease_info:
