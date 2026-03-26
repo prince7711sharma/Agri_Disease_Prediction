@@ -1,10 +1,7 @@
-fastapi==0.115.0
-uvicorn==0.30.0
-python-multipart==0.0.9
-pillow==10.4.0
-python-dotenv==1.0.1
-pydantic==2.8.0
+fastapi
+uvicorn
 tensorflow==2.10.0
-keras==2.10.0
 numpy==1.23.5
+pillow
+python-dotenv
 h5py==3.7.0
