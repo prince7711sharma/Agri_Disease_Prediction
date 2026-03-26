@@ -193,4 +193,8 @@ async def predict(file: UploadFile = File(...)):
         import traceback
         print("❌ ERROR:", str(e))
         print(traceback.format_exc())
+<<<<<<< HEAD
         return {"success": False, "error": str(e)}
+=======
+        return {"success": False, "error": str(e)}
+>>>>>>> 23e90b2175d328a81fdbe09713d99b90c0d290e0

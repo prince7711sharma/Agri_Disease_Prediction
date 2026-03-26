@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # from fastapi import FastAPI
 # from fastapi.middleware.cors import CORSMiddleware
 # from app.routes.predict import router
@@ -38,6 +39,8 @@
 #         "health": "/api/v1/health",
 #         "predict": "/api/v1/predict"
 #     }
+=======
+>>>>>>> 23e90b2175d328a81fdbe09713d99b90c0d290e0
 
 import os
 from fastapi import FastAPI
@@ -59,7 +62,11 @@ app.add_middleware(
 
 @app.get("/")
 def root():
+<<<<<<< HEAD
     return {"message": "API 🚀"}
+=======
+    return {"message": "API Running 🚀"}
+>>>>>>> 23e90b2175d328a81fdbe09713d99b90c0d290e0
 
 # Load routes safely
 try:
@@ -67,4 +74,8 @@ try:
     app.include_router(router, prefix="/api/v1")
     print("✅ Routes loaded")
 except Exception as e:
+<<<<<<< HEAD
     print("❌ Route load error:", str(e))
+=======
+    print("❌ Route load error:", str(e))
+>>>>>>> 23e90b2175d328a81fdbe09713d99b90c0d290e0

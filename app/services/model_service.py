@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # import tensorflow as tf
 # import numpy as np
 # import json
@@ -92,6 +93,8 @@
 #
 # # Single instance (loaded once at startup)
 # model_service = ModelService()
+=======
+>>>>>>> 23e90b2175d328a81fdbe09713d99b90c0d290e0
 
 import tensorflow as tf
 import numpy as np
@@ -220,4 +223,8 @@ class ModelService:
                 }
                 for i in np.argsort(predictions)[::-1][:3]
             ]
+<<<<<<< HEAD
         }
+=======
+        }
+>>>>>>> 23e90b2175d328a81fdbe09713d99b90c0d290e0
