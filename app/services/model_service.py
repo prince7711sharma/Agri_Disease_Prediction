@@ -14,12 +14,28 @@ class ModelService:
         self._load()
 
     def _load(self):
-        """Load model, class names and disease info on startup."""
-        print("⏳ Loading AgritechAI model...")
+        print("⏳ Loading model...")
 
-        # Load Keras model
-        model_path = os.getenv("MODEL_PATH", "model/plant_disease_model.keras")
-        self.model = tf.keras.models.load_model(model_path)
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+        model_path = os.path.join(BASE_DIR, "../../model/plant_disease_model.keras")
+
+        # 🔥 ADD THESE LINES HERE
+        print("MODEL PATH:", model_path)
+        print("EXISTS:", os.path.exists(model_path))
+
+        if os.path.exists(model_path):
+            print("SIZE:", os.path.getsize(model_path))
+        else:
+            print("❌ MODEL FILE NOT FOUND")
+
+        # ✅ Load model
+        self.model = tf.keras.models.load_model(
+            model_path,
+            compile=False
+        )
+
+        print("✅ Model loaded")
         print(f"✅ Model loaded from: {model_path}")
 
         # Load class names
