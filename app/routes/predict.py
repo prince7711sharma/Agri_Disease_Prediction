@@ -1,30 +1,47 @@
 from fastapi import APIRouter, File, UploadFile
-from app.services.model_service import model_service
 from app.services.image_service import preprocess_image, validate_image
 from app.schemas.response import PredictResponse, HealthResponse
 import os
 
 router = APIRouter()
 
+# 🔥 Lazy load (IMPORTANT)
+model_service = None
+
+def get_model_service():
+    global model_service
+    if model_service is None:
+        print("⏳ Initializing model service...")
+        from app.services.model_service import ModelService
+        model_service = ModelService()
+    return model_service
+
+
 @router.get("/health", response_model=HealthResponse)
 def health():
+    ms = get_model_service()
     return {
         "status": "ok ✅",
-        "model_loaded": model_service.model is not None,
-        "total_classes": len(model_service.class_names),
+        "model_loaded": ms.model is not None,
+        "total_classes": len(ms.class_names),
         "accuracy": "97.78%",
         "version": os.getenv("APP_VERSION", "1.0.0")
     }
 
+
 @router.get("/classes")
 def get_classes():
+    ms = get_model_service()
     return {
-        "total": len(model_service.class_names),
-        "classes": model_service.class_names
+        "total": len(ms.class_names),
+        "classes": ms.class_names
     }
+
 
 @router.post("/predict", response_model=PredictResponse)
 async def predict(file: UploadFile = File(...)):
+
+    ms = get_model_service()
 
     # Read file
     image_bytes = await file.read()
@@ -39,7 +56,7 @@ async def predict(file: UploadFile = File(...)):
     img_array = preprocess_image(image_bytes)
 
     # Predict
-    result = model_service.predict(img_array)
+    result = ms.predict(img_array)
 
     return {
         "success": True,
