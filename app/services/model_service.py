@@ -106,10 +106,7 @@ load_dotenv()
 
 class ModelService:
     def __init__(self):
-        self.model = tf.keras.models.load_model(
-             model_path,
-             compile=False
-        )
+        self.model = None
         self.class_names = []
         self.disease_info = {}
         self._load()
@@ -119,7 +116,7 @@ class ModelService:
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-        # ✅ FIXED PATHS (Render safe)
+        # ✅ Define paths properly
         model_path = os.path.join(BASE_DIR, "../../model/plant_disease_model.keras")
         class_path = os.path.join(BASE_DIR, "../../model/class_names.json")
         info_path = os.path.join(BASE_DIR, "../data/disease_info.json")
@@ -127,11 +124,11 @@ class ModelService:
         print("📂 Model path:", model_path)
         print("📂 Exists:", os.path.exists(model_path))
 
+        # ✅ Load model (NO safe_mode)
         try:
             self.model = tf.keras.models.load_model(
                 model_path,
-                compile=False,
-                safe_mode=False
+                compile=False
             )
             print("✅ Model loaded")
 
@@ -139,15 +136,50 @@ class ModelService:
             print("❌ Model load failed:", str(e))
             raise e
 
-        # Load class names
+        # ✅ Load class names
         with open(class_path, 'r') as f:
             self.class_names = json.load(f)
 
-        # Load disease info
+        # ✅ Load disease info
         with open(info_path, 'r') as f:
             self.disease_info = json.load(f)
 
         print("✅ All resources loaded")
+
+    # def _load(self):
+    #     print("⏳ Loading model...")
+    #
+    #     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    #
+    #     # ✅ FIXED PATHS (Render safe)
+    #     model_path = os.path.join(BASE_DIR, "../../model/plant_disease_model.keras")
+    #     class_path = os.path.join(BASE_DIR, "../../model/class_names.json")
+    #     info_path = os.path.join(BASE_DIR, "../data/disease_info.json")
+    #
+    #     print("📂 Model path:", model_path)
+    #     print("📂 Exists:", os.path.exists(model_path))
+    #
+    #     try:
+    #         self.model = tf.keras.models.load_model(
+    #             model_path,
+    #             compile=False,
+    #             safe_mode=False
+    #         )
+    #         print("✅ Model loaded")
+    #
+    #     except Exception as e:
+    #         print("❌ Model load failed:", str(e))
+    #         raise e
+    #
+    #     # Load class names
+    #     with open(class_path, 'r') as f:
+    #         self.class_names = json.load(f)
+    #
+    #     # Load disease info
+    #     with open(info_path, 'r') as f:
+    #         self.disease_info = json.load(f)
+    #
+    #     print("✅ All resources loaded")
 
     def get_disease_info(self, class_name: str) -> dict:
         if class_name in self.disease_info:
