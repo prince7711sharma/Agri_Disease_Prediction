@@ -1,11 +1,8 @@
-import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.routes.predict import router
 from dotenv import load_dotenv
-
-# 🔥 Hide TF logs + CPU fix
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+import os
 
 load_dotenv()
 
@@ -17,30 +14,25 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# ✅ CORS
+# CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Replace with your domain in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# ✅ Root route (works even if model fails)
+# Routes
+app.include_router(router, prefix="/api/v1", tags=["Plant Disease Detection"])
+
 @app.get("/")
 def root():
     return {
         "name": "🌿 AgritechAI Plant Disease Detection API",
         "version": os.getenv("APP_VERSION", "1.0.0"),
-        "status": "running",
-        "docs": "/docs"
+        "accuracy": "97.78%",
+        "docs": "/docs",
+        "health": "/api/v1/health",
+        "predict": "/api/v1/predict"
     }
-
-# ✅ Import router AFTER app starts (prevents crash)
-try:
-    from app.routes.predict import router
-    app.include_router(router, prefix="/api/v1", tags=["Plant Disease Detection"])
-    print("✅ Routes loaded successfully")
-
-except Exception as e:
-    print("❌ Failed to load routes:", str(e))
