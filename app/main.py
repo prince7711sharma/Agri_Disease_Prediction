@@ -39,13 +39,12 @@
 #         "health": "/api/v1/health",
 #         "predict": "/api/v1/predict"
 #     }
+
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# 🔥 Important
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
 app = FastAPI(title="AgritechAI")
 
@@ -61,10 +60,10 @@ app.add_middleware(
 def root():
     return {"message": "API Running 🚀"}
 
-# Load routes safely
+# load routes safely
 try:
     from app.routes.predict import router
     app.include_router(router, prefix="/api/v1")
     print("✅ Routes loaded")
 except Exception as e:
-    print("❌ Route load error:", str(e))
+    print("❌ Route error:", str(e))
