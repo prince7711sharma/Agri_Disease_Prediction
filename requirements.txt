@@ -5,3 +5,4 @@ numpy==1.23.5
 pillow
 python-dotenv
 h5py==3.7.0
+python-multipart
