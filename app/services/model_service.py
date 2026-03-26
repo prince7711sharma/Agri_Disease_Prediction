@@ -106,7 +106,10 @@ load_dotenv()
 
 class ModelService:
     def __init__(self):
-        self.model = None
+        self.model = tf.keras.models.load_model(
+             model_path,
+             compile=False
+        )
         self.class_names = []
         self.disease_info = {}
         self._load()
