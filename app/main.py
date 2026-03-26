@@ -4,6 +4,9 @@ from app.routes.predict import router
 from dotenv import load_dotenv
 import os
 
+# 🔥 Hide TF logs + CPU fix
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 load_dotenv()
 
 app = FastAPI(
