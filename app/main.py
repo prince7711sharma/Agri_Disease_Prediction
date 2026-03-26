@@ -63,7 +63,7 @@ def root():
 # load routes safely
 try:
     from routes.predict import router
-    app.include_router(router, prefix="/api/v1")
+    app.include_router(router)
     print("✅ Routes loaded")
 except Exception as e:
     print("❌ Route error:", str(e))
