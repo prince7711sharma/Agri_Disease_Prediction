@@ -1,5 +1,5 @@
-#import tensorflow as tf
-import keras
+import tensorflow as tf
+#import keras
 import numpy as np
 import json
 import os
@@ -19,7 +19,7 @@ class ModelService:
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-        model_path = os.path.join(BASE_DIR, "../../model/plant_disease_model.keras")
+        model_path = os.path.join(BASE_DIR, "../../model/plant_disease_model.h5")
 
         # 🔥 ADD THESE LINES HERE
         print("MODEL PATH:", model_path)
@@ -31,8 +31,13 @@ class ModelService:
             print("❌ MODEL FILE NOT FOUND")
 
         # ✅ Load model
-        self.model = keras.models.load_model(model_path, compile=False)
+        self.model = tf.keras.models.load_model(
+              model_path,
+              compile=False
+        )
+         
 
+           
         print("✅ Model loaded")
         print(f"✅ Model loaded from: {model_path}")
 
