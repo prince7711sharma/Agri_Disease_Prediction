@@ -11,27 +11,44 @@ import keras
 
 load_dotenv()
 
-# 🔥 👉 PASTE YOUR HUGGING FACE LINK HERE
+# 🔥 Hugging Face Model URL
 MODEL_URL = "https://huggingface.co/vksharma7711/plant-disease-model/resolve/main/plant_disease_model.keras"
 MODEL_PATH = "model/plant_disease_model.keras"
 
 
 def download_model():
-    """Download model from Hugging Face if not exists"""
-    if not os.path.exists(MODEL_PATH):
-        print("⬇️ Downloading model from Hugging Face...")
+    """Download model if missing or corrupted"""
 
-        os.makedirs("model", exist_ok=True)
+    try:
+        # ✅ Check existence + size (IMPORTANT FIX)
+        if not os.path.exists(MODEL_PATH) or os.path.getsize(MODEL_PATH) < 1_000_000:
+            print("⬇️ Downloading model from Hugging Face...")
 
-        response = requests.get(MODEL_URL)
+            os.makedirs("model", exist_ok=True)
 
-        # 🔥 Check download success
-        if response.status_code == 200:
-            with open(MODEL_PATH, "wb") as f:
-                f.write(response.content)
-            print("✅ Model downloaded successfully")
+            response = requests.get(MODEL_URL, stream=True, timeout=120)
+
+            if response.status_code == 200:
+                with open(MODEL_PATH, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+
+                size = os.path.getsize(MODEL_PATH)
+                print(f"✅ Model downloaded successfully ({size} bytes)")
+
+                # ❗ Safety check after download
+                if size < 1_000_000:
+                    raise Exception("❌ Downloaded file is too small (corrupted)")
+            else:
+                raise Exception(f"❌ Failed to download model: {response.status_code}")
+
         else:
-            raise Exception("❌ Failed to download model")
+            print("✅ Model already exists and is valid")
+
+    except Exception as e:
+        print("❌ Model download failed:", str(e))
+        raise
 
 
 class ModelService:
@@ -42,7 +59,7 @@ class ModelService:
         self._load()
 
     def _load(self):
-        print("⏳ Loading AgritechAI model...")
+        print("⏳ Initializing model service...")
 
         # ✅ Step 1: Download model
         download_model()
@@ -50,13 +67,14 @@ class ModelService:
         # ✅ Step 2: Debug info
         print("MODEL PATH:", MODEL_PATH)
         print("EXISTS:", os.path.exists(MODEL_PATH))
+        print("SIZE:", os.path.getsize(MODEL_PATH))
 
-        if os.path.exists(MODEL_PATH):
-            print("SIZE:", os.path.getsize(MODEL_PATH))
-        else:
-            raise Exception("❌ Model file not found after download")
+        # ❗ Final safety check
+        if not os.path.exists(MODEL_PATH) or os.path.getsize(MODEL_PATH) < 1_000_000:
+            raise Exception("❌ Model file is missing or corrupted")
 
         # ✅ Step 3: Load model
+        print("⏳ Loading model into memory...")
         self.model = keras.models.load_model(
             MODEL_PATH,
             compile=False,
@@ -80,7 +98,8 @@ class ModelService:
         print("✅ Disease info loaded!")
 
     def get_disease_info(self, class_name: str) -> dict:
-        """Get disease info — exact match, healthy fallback, or generic."""
+        """Return disease info with fallback"""
+
         if class_name in self.disease_info:
             return self.disease_info[class_name]
 
@@ -107,13 +126,16 @@ class ModelService:
         }
 
     def predict(self, img_array: np.ndarray, top_k: int = 3) -> dict:
-        """Run inference and return top-k predictions."""
+        """Run prediction"""
+
+        if self.model is None:
+            raise Exception("❌ Model not loaded")
+
         threshold = float(os.getenv("CONFIDENCE_THRESHOLD", 0.70))
 
         predictions = self.model.predict(img_array, verbose=0)[0]
         top_indices = np.argsort(predictions)[::-1][:top_k]
 
-        # Top prediction
         top_idx = top_indices[0]
         top_class = self.class_names[top_idx]
         top_conf = float(predictions[top_idx])
@@ -125,7 +147,7 @@ class ModelService:
 
         return {
             "top_class": top_class,
-            "top_conf": top_conf,
+            "top_conf": round(top_conf * 100, 2),
             "info": info,
             "warning": warning,
             "top3": [
@@ -138,5 +160,5 @@ class ModelService:
         }
 
 
-# ✅ Single instance (loads once)
+# ✅ Singleton instance
 model_service = ModelService()
