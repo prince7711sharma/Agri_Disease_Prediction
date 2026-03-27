@@ -1,11 +1,38 @@
-import tensorflow as tf
-#import keras
+import os
+import requests
 import numpy as np
 import json
-import os
 from dotenv import load_dotenv
 
+# 🔥 Fix Keras backend compatibility
+os.environ["KERAS_BACKEND"] = "tensorflow"
+
+import keras
+
 load_dotenv()
+
+# 🔥 👉 PASTE YOUR HUGGING FACE LINK HERE
+MODEL_URL = "https://huggingface.co/vksharma7711/plant-disease-model/resolve/main/plant_disease_model.keras"
+MODEL_PATH = "model/plant_disease_model.keras"
+
+
+def download_model():
+    """Download model from Hugging Face if not exists"""
+    if not os.path.exists(MODEL_PATH):
+        print("⬇️ Downloading model from Hugging Face...")
+
+        os.makedirs("model", exist_ok=True)
+
+        response = requests.get(MODEL_URL)
+
+        # 🔥 Check download success
+        if response.status_code == 200:
+            with open(MODEL_PATH, "wb") as f:
+                f.write(response.content)
+            print("✅ Model downloaded successfully")
+        else:
+            raise Exception("❌ Failed to download model")
+
 
 class ModelService:
     def __init__(self):
@@ -15,48 +42,48 @@ class ModelService:
         self._load()
 
     def _load(self):
-        print("⏳ Loading model...")
+        print("⏳ Loading AgritechAI model...")
 
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        # ✅ Step 1: Download model
+        download_model()
 
-        model_path = os.path.join(BASE_DIR, "../../model/plant_disease_model.h5")
+        # ✅ Step 2: Debug info
+        print("MODEL PATH:", MODEL_PATH)
+        print("EXISTS:", os.path.exists(MODEL_PATH))
 
-        # 🔥 ADD THESE LINES HERE
-        print("MODEL PATH:", model_path)
-        print("EXISTS:", os.path.exists(model_path))
-
-        if os.path.exists(model_path):
-            print("SIZE:", os.path.getsize(model_path))
+        if os.path.exists(MODEL_PATH):
+            print("SIZE:", os.path.getsize(MODEL_PATH))
         else:
-            print("❌ MODEL FILE NOT FOUND")
+            raise Exception("❌ Model file not found after download")
 
-        # ✅ Load model
-        self.model = tf.keras.models.load_model(
-              model_path,
-              compile=False
+        # ✅ Step 3: Load model
+        self.model = keras.models.load_model(
+            MODEL_PATH,
+            compile=False,
+            safe_mode=False
         )
-         
 
-           
-        print("✅ Model loaded")
-        print(f"✅ Model loaded from: {model_path}")
+        print("✅ Model loaded successfully")
 
-        # Load class names
+        # ✅ Step 4: Load class names
         class_path = os.getenv("CLASS_NAMES_PATH", "model/class_names.json")
         with open(class_path, 'r') as f:
             self.class_names = json.load(f)
+
         print(f"✅ Classes loaded: {len(self.class_names)}")
 
-        # Load disease info
+        # ✅ Step 5: Load disease info
         info_path = os.getenv("DISEASE_INFO_PATH", "app/data/disease_info.json")
         with open(info_path, 'r') as f:
             self.disease_info = json.load(f)
-        print(f"✅ Disease info loaded!")
+
+        print("✅ Disease info loaded!")
 
     def get_disease_info(self, class_name: str) -> dict:
         """Get disease info — exact match, healthy fallback, or generic."""
         if class_name in self.disease_info:
             return self.disease_info[class_name]
+
         if "healthy" in class_name.lower():
             return {
                 "display_name": "Healthy Plant",
@@ -66,8 +93,10 @@ class ModelService:
                 "treatment": "No treatment needed.",
                 "prevention": "Continue good agricultural practices."
             }
+
         crop = class_name.split("___")[0] if "___" in class_name else "Unknown"
         disease = class_name.split("___")[1].replace("_", " ") if "___" in class_name else class_name
+
         return {
             "display_name": f"{crop} - {disease}",
             "crop": crop,
@@ -90,7 +119,6 @@ class ModelService:
         top_conf = float(predictions[top_idx])
         info = self.get_disease_info(top_class)
 
-        # Warning if low confidence
         warning = None
         if top_conf < threshold:
             warning = "⚠️ Low confidence. Please upload a clearer leaf image."
@@ -109,5 +137,6 @@ class ModelService:
             ]
         }
 
-# Single instance (loaded once at startup)
+
+# ✅ Single instance (loads once)
 model_service = ModelService()
