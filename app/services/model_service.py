@@ -4,10 +4,8 @@ import numpy as np
 import json
 from dotenv import load_dotenv
 
-# 🔥 Fix Keras backend compatibility
-os.environ["KERAS_BACKEND"] = "tensorflow"
-
-import keras
+# ✅ Use TensorFlow Keras (IMPORTANT FIX)
+from tensorflow import keras
 
 load_dotenv()
 
@@ -20,7 +18,7 @@ def download_model():
     """Download model if missing or corrupted"""
 
     try:
-        # ✅ Check existence + size (IMPORTANT FIX)
+        # ✅ Check existence + size
         if not os.path.exists(MODEL_PATH) or os.path.getsize(MODEL_PATH) < 1_000_000:
             print("⬇️ Downloading model from Hugging Face...")
 
@@ -37,9 +35,9 @@ def download_model():
                 size = os.path.getsize(MODEL_PATH)
                 print(f"✅ Model downloaded successfully ({size} bytes)")
 
-                # ❗ Safety check after download
+                # ❗ Safety check
                 if size < 1_000_000:
-                    raise Exception("❌ Downloaded file is too small (corrupted)")
+                    raise Exception("❌ Downloaded file is corrupted (too small)")
             else:
                 raise Exception(f"❌ Failed to download model: {response.status_code}")
 
@@ -64,33 +62,32 @@ class ModelService:
         # ✅ Step 1: Download model
         download_model()
 
-        # ✅ Step 2: Debug info
+        # ✅ Debug info
         print("MODEL PATH:", MODEL_PATH)
         print("EXISTS:", os.path.exists(MODEL_PATH))
         print("SIZE:", os.path.getsize(MODEL_PATH))
 
         # ❗ Final safety check
         if not os.path.exists(MODEL_PATH) or os.path.getsize(MODEL_PATH) < 1_000_000:
-            raise Exception("❌ Model file is missing or corrupted")
+            raise Exception("❌ Model file missing or corrupted")
 
-        # ✅ Step 3: Load model
+        # ✅ Step 2: Load model
         print("⏳ Loading model into memory...")
         self.model = keras.models.load_model(
             MODEL_PATH,
-            compile=False,
-            safe_mode=False
+            compile=False
         )
 
         print("✅ Model loaded successfully")
 
-        # ✅ Step 4: Load class names
+        # ✅ Step 3: Load class names
         class_path = os.getenv("CLASS_NAMES_PATH", "model/class_names.json")
         with open(class_path, 'r') as f:
             self.class_names = json.load(f)
 
         print(f"✅ Classes loaded: {len(self.class_names)}")
 
-        # ✅ Step 5: Load disease info
+        # ✅ Step 4: Load disease info
         info_path = os.getenv("DISEASE_INFO_PATH", "app/data/disease_info.json")
         with open(info_path, 'r') as f:
             self.disease_info = json.load(f)
